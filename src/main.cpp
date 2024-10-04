@@ -4,6 +4,7 @@
 #include "include/window.hpp"
 #include "API/objects.hpp"
 
+#include "fps-controller.cpp"
 #include "include_scripts.cpp"
 
 SDL_Window* window;
@@ -20,24 +21,29 @@ void loop() {
     SDL_Event event;
 
     while (running) {
-        // issue: doesn't update correctly
+        start_timer();
+
+        // event manager
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = 0;
             }
-
-            simple_images[0].rect.x += 1;
-
-            SDL_RenderClear(renderer);
-
-            for (int i = 0; i < simple_images.size(); i++) {
-                OBJECT::SIMPLE_IMAGE* obj = &simple_images[i];
-
-                SDL_RenderCopy(renderer, obj->img, NULL, &obj->rect);
-            }
-
-            SDL_RenderPresent(renderer);
         }
+
+        // draw rule
+        simple_images[0].rect.x += 1;
+
+        SDL_RenderClear(renderer);
+
+        for (int i = 0; i < simple_images.size(); i++) {
+            OBJECT::SIMPLE_IMAGE* obj = &simple_images[i];
+
+            SDL_RenderCopy(renderer, obj->img, NULL, &obj->rect);
+        }
+
+        SDL_RenderPresent(renderer);
+
+        end_timer();
     }
 }
 
@@ -52,6 +58,7 @@ int main() {
 
     add_objects();
 
+    set_fps(60);
     loop();
 
     SDL_DestroyWindow(window);
