@@ -15,13 +15,25 @@ float vertices[] = {
     0.5f, -0.5f     // right
 };
 
+float square_vertices[] = {
+    // first triangle
+    0.5f,  0.5f,    // top-right
+    0.5f, -0.5f,    // bottom-right
+   -0.5f, -0.5f,    // bottom-left
+
+   // second triangle
+   -0.5f, -0.5f,    // bottom-left
+   -0.5f,  0.5f,    // top-left
+    0.5f,  0.5f     // top-right
+};
+
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_GLContext gl_context;
 
-SDL_Texture* img_1;
+//SDL_Texture* img_1;
 
-std::vector<OBJECT::SIMPLE_IMAGE> simple_images;
+//std::vector<OBJECT::SIMPLE_IMAGE> simple_images;
 
 void add_objects();
 
@@ -42,7 +54,7 @@ void loop() {
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        GAME_WINDOW::draw_triangle();
+        GAME_WINDOW::draw_triangle(sizeof(square_vertices));
         //glUseProgram(GAME_WINDOW::shaderProgram);
         //glBindVertexArray(GAME_WINDOW::VAO);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -66,12 +78,8 @@ int main() {
     }
 
 
-    GAME_WINDOW::config_triangle_shader(vertices, sizeof(vertices));
-    //renderer = GAME_WINDOW::create_renderer(window);
-    //if (renderer == NULL) return -1;
-
-    //img_1 = GAME_WINDOW::load_texture("assets/face.bmp", renderer);
-
+    //GAME_WINDOW::config_triangle_shader(vertices, sizeof(vertices));
+    GAME_WINDOW::config_square_shader(square_vertices, sizeof(square_vertices));
     add_objects();
 
     set_fps(60);
@@ -87,7 +95,7 @@ int main() {
 
 
 void add_objects() {
-    OBJECT::SIMPLE_IMAGE img({ 0, 0 }, { 100, 100 }, "assets/face.bmp", renderer);
+    //OBJECT::SIMPLE_IMAGE img({ 0, 0 }, { 100, 100 }, "assets/face.bmp", renderer);
 
-    simple_images.push_back(img);
+    //simple_images.push_back(img);
 }

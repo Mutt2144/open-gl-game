@@ -17,7 +17,9 @@ namespace GAME_WINDOW {
     SDL_Texture* load_texture(const char* path, SDL_Renderer* renderer);
 
     void config_triangle_shader(float vertices[], int num_vertices);
-    void draw_triangle();
+    void draw_triangle(int num_vertices);
+
+    void config_square_shader(float vertices[], int num_vertices);
 }
 
 #endif
