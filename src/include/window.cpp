@@ -17,6 +17,11 @@ SDL_Window* GAME_WINDOW::create_window(int w, int h, const char* title) {
         return NULL;
     }
 
+    if (IMG_Init(IMG_INIT_PNG) < 0) {
+        std::cerr << "Cannot initalize IMG: " << IMG_GetError() << "\n";
+        return NULL;
+    }
+
     SDL_Window* win = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_OPENGL);
     if (!win) {
         std::cerr << "Cannot create window: " << SDL_GetError() << "\n";
@@ -46,7 +51,7 @@ SDL_GLContext GAME_WINDOW::create_open_gl_renderer(SDL_Window* window) {
         SDL_Quit();
         return NULL;
     }
-
+    
     return gl_context;
 }
 
@@ -103,34 +108,29 @@ unsigned int GAME_WINDOW::create_shader_program(const char* vertex_shader_source
 }
 
 
-unsigned int GAME_WINDOW::load_texture(const char* path) {
-    SDL_Surface* surface = SDL_LoadBMP(path);
+GLuint GAME_WINDOW::load_texture(const char* path) {
+    SDL_Surface* surface = IMG_Load(path);  // Carregar imagem usando SDL2_image
     if (!surface) {
-        std::cerr << "Error loading BMP: " << SDL_GetError() << "\n";
+        printf("Erro ao carregar a imagem: %s\n", SDL_GetError());
         return 0;
     }
 
-    // generate a texture ID
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
+    GLuint textureID;
+    glGenTextures(1, &textureID);  // Gerar um ID de textura
+    glBindTexture(GL_TEXTURE_2D, textureID);  // Bind a textura como textura 2D
 
-    // bind texture as active texture
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    // Definir parâmetros de textura (opcional)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    // config texture params
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);   // minimization filter
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);   // magnification filter
+    // Especificar a imagem da textura
+    GLenum texture_format = (surface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
+    glTexImage2D(GL_TEXTURE_2D, 0, texture_format, surface->w, surface->h, 0,
+                 texture_format, GL_UNSIGNED_BYTE, surface->pixels);
 
-    // specifies the image to a texture (loading data from surface)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
+    SDL_FreeSurface(surface);  // Liberar a superfície SDL, já que a textura foi criada
 
-    // generate Mipmaps (opcional, improves performance when rendering large textures at smaller sizes)
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    // clear SDL surface (is no longer needed after loading the texture)
-    SDL_FreeSurface(surface);
-
-    return textureID;
+    return textureID;  // Retornar o ID da textura
 }
 
 void GAME_WINDOW::config_triangle_shader(float vertices[], int num_vertices) {
@@ -170,6 +170,7 @@ void GAME_WINDOW::config_triangle_shader(float vertices[], int num_vertices) {
     )";
 
 
+    /*
     // compile and bind shaders
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -211,6 +212,9 @@ void GAME_WINDOW::config_triangle_shader(float vertices[], int num_vertices) {
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+    */
+
+   shaderProgram = create_shader_program(vertexShaderSource, fragmentShaderSource);
 }
 
 void GAME_WINDOW::draw_triangle(int num_vertices) {
@@ -255,6 +259,7 @@ void GAME_WINDOW::config_square_shader(float vertices[], int num_vertices) {
     }
     )";
 
+    /*
     // compile and bind shaders
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -291,6 +296,9 @@ void GAME_WINDOW::config_square_shader(float vertices[], int num_vertices) {
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+    */
+
+   shaderProgram = create_shader_program(vertexShaderSource, fragmentShaderSource);
 }
 
 void GAME_WINDOW::config_image_shader(float vertices[], int num_vertices, unsigned index[], int num_index) {

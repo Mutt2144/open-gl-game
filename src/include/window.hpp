@@ -1,7 +1,10 @@
 #ifndef WINDOW_HPP
 #define WINDOW_HPP
 
+#include <glad/glad.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <GL/gl.h>
 
 namespace GAME_WINDOW {
     unsigned int VBO, VAO, EBO;
@@ -17,7 +20,7 @@ namespace GAME_WINDOW {
     unsigned int compile_shader(unsigned int type, const char* source);
     unsigned int create_shader_program(const char* vertex_shader_source, const char* fragment_shader_source);
 
-    unsigned int load_texture(const char* path);
+    GLuint load_texture(const char* path);
 
     void config_square_shader(float vertices[], int num_vertices);
     void config_triangle_shader(float vertices[], int num_vertices);
