@@ -8,7 +8,7 @@ OBJECT::SIMPLE_IMAGE::SIMPLE_IMAGE(vec2 _pos, vec2 _siz, const char* path, SDL_R
     rect.w = _siz.x;
     rect.h = _siz.y;
 
-    img = GAME_WINDOW::load_texture(path, renderer);
+    //img = GAME_WINDOW::load_texture(path, renderer);
 }
 
 OBJECT::SIMPLE_IMAGE::~SIMPLE_IMAGE() {

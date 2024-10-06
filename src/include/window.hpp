@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 
 namespace GAME_WINDOW {
-    unsigned int VBO, VAO;
+    unsigned int VBO, VAO, EBO;
     unsigned int shaderProgram;
 
     void config_opengl();
@@ -14,12 +14,17 @@ namespace GAME_WINDOW {
     SDL_GLContext create_open_gl_renderer(SDL_Window* window);
     bool load_gl_function(SDL_Window* window, SDL_GLContext gl_context);
 
-    SDL_Texture* load_texture(const char* path, SDL_Renderer* renderer);
+    unsigned int compile_shader(unsigned int type, const char* source);
+    unsigned int create_shader_program(const char* vertex_shader_source, const char* fragment_shader_source);
 
+    unsigned int load_texture(const char* path);
+
+    void config_square_shader(float vertices[], int num_vertices);
     void config_triangle_shader(float vertices[], int num_vertices);
     void draw_triangle(int num_vertices);
 
-    void config_square_shader(float vertices[], int num_vertices);
+    void config_image_shader(float vertices[], int num_vertices, unsigned index[], int num_index);
+    void draw_image(int num_vertices, unsigned int texture);
 }
 
 #endif
