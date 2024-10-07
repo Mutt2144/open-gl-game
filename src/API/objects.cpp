@@ -2,15 +2,12 @@
 
 #include "objects.hpp"
 
-OBJECT::SIMPLE_IMAGE::SIMPLE_IMAGE(vec2 _pos, vec2 _siz, const char* path, SDL_Renderer* renderer) {
-    rect.x = _pos.x;
-    rect.y = _pos.y;
-    rect.w = _siz.x;
-    rect.h = _siz.y;
+OBJECT::DEFAULT::DEFAULT(int _type, float _x, float _y, float _w, float _h, float _theta, float _gravity, const char* img_path) {
+    type  = _type;
+    x     = _x;     y = _y;
+    w     = _w;     h = _h;
+    theta = _theta;
+    gravity = _gravity;
 
-    //img = GAME_WINDOW::load_texture(path, renderer);
-}
-
-OBJECT::SIMPLE_IMAGE::~SIMPLE_IMAGE() {
-    std::cout << "Deleted\n";
+    textureID = GAME_WINDOW::load_texture(img_path);
 }

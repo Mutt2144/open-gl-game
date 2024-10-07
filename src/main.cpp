@@ -27,18 +27,50 @@ float square_vertices[] = {
     0.5f,  0.5f     // top-right
 };
 
+bool keys[256];
 
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_GLContext gl_context;
 
 GLuint textureID;
+GLuint fontID;
 
-//SDL_Texture* img_1;
+SDL_Color c = { 255, 255, 255, 255 };
 
-//std::vector<OBJECT::SIMPLE_IMAGE> simple_images;
+int s_x = 100;
+int s_y = 100;
+int s_w = 200;
+int s_h = 200;
+
+class PLAYER {
+public:
+    float x, y, w, h;
+    int move_speed = 10;
+    float theta;
+    SDL_Color c;
+
+    PLAYER(int _x, int _y, int _w, int _h, SDL_Color _c) {
+        x = _x;
+        y = _y;
+        w = _w;
+        h = _h;
+        c = _c;
+    }
+};
+
+PLAYER player(50, 50, 200, 200, c);
+
+std::vector<OBJECT::DEFAULT> objects;
 
 void add_objects();
+
+void handle_keydown(SDL_Event e);
+void handle_keyup(SDL_Event e);
+
+void move_player();
+
+void update_gravity();
 
 void loop() {
     bool running = 1;
@@ -52,25 +84,38 @@ void loop() {
             if (event.type == SDL_QUIT) {
                 running = 0;
             }
+            if (event.type == SDL_KEYDOWN)  handle_keydown(event);
+            if (event.type == SDL_KEYUP)    handle_keyup(event);
         }
+
+        move_player();
+        update_gravity();
 
         //glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         //GAME_WINDOW::draw_triangle(sizeof(vertices));
 
-        glBindTexture(GL_TEXTURE_2D, textureID);
+        fontID = GAME_WINDOW::load_font("assets/fonts/SPACE.ttf", 24, "Hello", c);
+        GAME_WINDOW::draw_font(fontID, 50, 50, 400, 100);
+        textureID = GAME_WINDOW::load_texture("assets/face.png");
+        GAME_WINDOW::draw_image(textureID, player.x, player.y, player.w, player.h, player.theta);
 
-        glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f);   glVertex2f(100, 100);   // top-left
-        glTexCoord2f(1.0f, 0.0f);   glVertex2f(300, 100);   // top-right
-        glTexCoord2f(1.0f, 1.0f);   glVertex2f(300, 300);   // bottom-direito
-        glTexCoord2f(0.0f, 1.0f);   glVertex2f(100, 300);   // bottom-esquerdo
-        glEnd();
+        for (int i = 0; i < objects.size(); i++) {
+            objects[i].textureID = GAME_WINDOW::load_texture("assets/face.png");
+            GAME_WINDOW::draw_image(objects[i].textureID, objects[i].x, objects[i].y, objects[i].w, objects[i].h, objects[i].theta);
+            
+            glDeleteTextures(1, &objects[i].textureID);
+        }
 
+        glDeleteTextures(1, &fontID);
+        glDeleteTextures(1, &textureID);
 
         SDL_GL_SwapWindow(window);
+        
+        end_timer();
     }
+
 }
 
 int main() {
@@ -93,11 +138,21 @@ int main() {
     glOrtho(0, 800, 600, 0, -1, 1);
     glMatrixMode(GL_MODELVIEW);
 
+    //SDL_Color c = { 255, 255, 255, 255 };
+
     textureID = GAME_WINDOW::load_texture("assets/face.png");
+    //fontID    = GAME_WINDOW::load_font("assets/fonts/SPACE.ttf", 24, "Vai a merda", c);
 
     //GAME_WINDOW::config_triangle_shader(vertices, sizeof(vertices));
     //GAME_WINDOW::config_square_shader(square_vertices, sizeof(square_vertices));
-    glEnable(GL_TEXTURE_2D);   
+    glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    add_objects();
+
+    SDL_Color c = { 255, 255, 255, 255 };
+    GAME_WINDOW::load_font("assets/fonts/SPACE.ttf", 24, "Hello", c);
     set_fps(60);
     loop();
 
@@ -113,7 +168,37 @@ int main() {
 
 
 void add_objects() {
-    //OBJECT::SIMPLE_IMAGE img({ 0, 0 }, { 100, 100 }, "assets/face.bmp", renderer);
+    OBJECT::DEFAULT new_obj(BODY_TYPE::DYNAMIC, 500, 50, 100, 100, 0, 9.8, "assets/face.png");
 
-    //simple_images.push_back(img);
+    objects.push_back(new_obj);
+}
+
+void handle_keydown(SDL_Event e) {
+    if (e.key.keysym.sym > 256) return;
+    std::cout << "key: " << e.key.keysym.sym << "\n";
+    keys[e.key.keysym.sym] = true;
+}
+
+void handle_keyup(SDL_Event e) {
+    if (e.key.keysym.sym > 256) return;
+    keys[e.key.keysym.sym] = false;
+}
+
+void move_player() {
+    player.theta += 0.01;
+    if (player.theta < -M_PI * 2) player.theta += M_PI * 2;
+    if (player.theta >  M_PI * 2) player.theta -= M_PI * 2;
+
+    if (keys[SDLK_a]) player.x -= player.move_speed;
+    if (keys[SDLK_d]) player.x += player.move_speed;
+    if (keys[SDLK_w]) player.y -= player.move_speed;
+    if (keys[SDLK_s]) player.y += player.move_speed;
+}
+
+void update_gravity() {
+    for (int i = 0; i < objects.size(); i++) {
+        if (objects[i].type != BODY_TYPE::DYNAMIC) break;
+
+        objects[i].y += objects[i].gravity;
+    }
 }

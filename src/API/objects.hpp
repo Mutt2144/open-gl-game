@@ -4,21 +4,27 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#include "../include/window.hpp"
-
-struct vec2 {
+struct VEC2 {
     float x, y;
 };
 
+namespace BODY_TYPE {
+    int STATIC = 0;
+    int DYNAMIC = 1;
+};
+
 namespace OBJECT {
-    class SIMPLE_IMAGE {
+    class DEFAULT {
     public:
-        SDL_Rect rect;
-        SDL_Texture* img;
+        int type;
+        float x, y, w, h;
+        float theta;
+        float gravity;
+        GLuint textureID;
 
-        SIMPLE_IMAGE(vec2 _pos, vec2 _siz, const char* path, SDL_Renderer* renderer);
+        VEC2 speed;
 
-        ~SIMPLE_IMAGE();
+        DEFAULT(int _type, float _x, float _y, float _w, float _h, float theta, float _gravity, const char* img_path);
     };
 }
 

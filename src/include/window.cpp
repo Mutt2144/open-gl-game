@@ -18,7 +18,12 @@ SDL_Window* GAME_WINDOW::create_window(int w, int h, const char* title) {
     }
 
     if (IMG_Init(IMG_INIT_PNG) < 0) {
-        std::cerr << "Cannot initalize IMG: " << IMG_GetError() << "\n";
+        std::cerr << "Cannot initialize IMG: " << IMG_GetError() << "\n";
+        return NULL;
+    }
+
+    if (TTF_Init() < 0) {
+        std::cerr << "cannot initialize TTF: " << TTF_GetError() << "\n";
         return NULL;
     }
 
@@ -42,6 +47,49 @@ SDL_Renderer* GAME_WINDOW::create_renderer(SDL_Window* window) {
 
     return rend;
 }
+
+GLuint GAME_WINDOW::load_font(const char* path, int size, const char* message, SDL_Color color) {
+    TTF_Font* font = TTF_OpenFont(path, size);
+    if (!font) {
+        std::cerr << "Cannot load font: " << TTF_GetError() << "\n";
+        return 0;
+    }
+
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, message, color);
+    if (!textSurface) {
+        std::cerr << "Cannot create texture surface: " << TTF_GetError() << "\n";
+        return 0;
+    }
+
+
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+
+    SDL_Surface* textSurfaceConverted = SDL_ConvertSurfaceFormat(textSurface, SDL_PIXELFORMAT_RGBA8888, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textSurfaceConverted->w, textSurfaceConverted->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, textSurfaceConverted->pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    SDL_FreeSurface(textSurface);
+    SDL_FreeSurface(textSurfaceConverted);
+    TTF_CloseFont(font);
+    return textureID;
+}
+
+void GAME_WINDOW::draw_font(GLuint textureID, int x, int y, int w, int h) {
+    //glBindTexture(GL_TEXTURE_2D, textureID);
+    glBegin(GL_QUADS);
+    
+    glTexCoord2f(0.0f, 0.0f);   glVertex2f(x,     y);
+    glTexCoord2f(1.0f, 0.0f);   glVertex2f(x + w, y);
+    glTexCoord2f(1.0f, 1.0f);   glVertex2f(x + w, y + h);
+    glTexCoord2f(0.0f, 1.0f);   glVertex2f(x,     y + h);
+
+    glEnd();
+}
+
+
 
 SDL_GLContext GAME_WINDOW::create_open_gl_renderer(SDL_Window* window) {
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
@@ -169,51 +217,6 @@ void GAME_WINDOW::config_triangle_shader(float vertices[], int num_vertices) {
     }
     )";
 
-
-    /*
-    // compile and bind shaders
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    // check for compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cerr << "Error compiling vertex shader: " << infoLog << "\n";
-    }
-
-    // compile fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    // check for compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cerr << "Error compiling fragment shader: " << infoLog << "\n";
-    }
-
-    // create and link shader program
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    // check for linker error
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cerr << "Error at linker program: " << infoLog << "\n";
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    */
-
    shaderProgram = create_shader_program(vertexShaderSource, fragmentShaderSource);
 }
 
@@ -258,45 +261,6 @@ void GAME_WINDOW::config_square_shader(float vertices[], int num_vertices) {
         FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f); // orange
     }
     )";
-
-    /*
-    // compile and bind shaders
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cerr << "Error Compiling vertex shader: " << infoLog << "\n";
-    }
-
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cerr << "Error compiling fragment shader: " << infoLog << "\n";
-    }
-
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cerr << "Error at linker program: " << infoLog << "\n";
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    */
 
    shaderProgram = create_shader_program(vertexShaderSource, fragmentShaderSource);
 }
@@ -359,13 +323,33 @@ void GAME_WINDOW::config_image_shader(float vertices[], int num_vertices, unsign
     shaderProgram = create_shader_program(vertexShaderSource, fragmentShaderSource);
 }
 
-void GAME_WINDOW::draw_image(int num_vertices, unsigned int texture) {
-    glUseProgram(shaderProgram);
+void GAME_WINDOW::draw_image(GLuint textureID, float x, float y, float w, float h, float theta) {
+    VEC2 p1 = apply_rotation({x,     y},     {x + w / 2, y + h / 2}, theta);
+    VEC2 p2 = apply_rotation({x + w, y},     {x + w / 2, y + h / 2},  theta);
+    VEC2 p3 = apply_rotation({x + w, y + h}, {x + w / 2, y + h / 2}, theta);
+    VEC2 p4 = apply_rotation({x,     y + h}, {x + w / 2, y + h / 2},  theta);
 
-    // bind texture
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glBindTexture(GL_TEXTURE_2D, textureID);
 
-    // desenha o quadrado
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f);   glVertex2f(p1.x, p1.y);   // top-left
+    glTexCoord2f(1.0f, 0.0f);   glVertex2f(p2.x, p2.y);   // top-right
+    glTexCoord2f(1.0f, 1.0f);   glVertex2f(p3.x, p3.y);   // bottom-right
+    glTexCoord2f(0.0f, 1.0f);   glVertex2f(p4.x, p4.y);   // bottom-left
+    glEnd();
+}
+
+VEC2 GAME_WINDOW::apply_rotation(VEC2 point, VEC2 center, float theta) {
+    /*
+    * x′=x⋅cos(θ)−y⋅sin(θ)
+    * y′=x⋅sin⁡(θ)+y⋅cos⁡(θ)y′=x⋅sin(θ)+y⋅cos(θ)
+    */
+
+    float translated_x = point.x - center.x;
+    float translated_y = point.y - center.y;
+
+    float rotated_x = translated_x * cos(theta) - translated_y * sin(theta);
+    float rotated_y = translated_x * sin(theta) + translated_y * cos(theta);
+
+    return { rotated_x + center.x, rotated_y + center.y };
 }
