@@ -1,3 +1,6 @@
+#define SCREEN_W 800
+#define SCREEN_H 600
+
 #include <iostream>
 #include <vector>
 
@@ -119,7 +122,7 @@ void loop() {
 }
 
 int main() {
-    window = GAME_WINDOW::create_window(800, 600, "SDL2 With OpenGL");
+    window = GAME_WINDOW::create_window(SCREEN_W, SCREEN_H, "SDL2 With OpenGL");
     if (window == NULL) return -1;
 
     gl_context = GAME_WINDOW::create_open_gl_renderer(window);
@@ -135,7 +138,7 @@ int main() {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, 800, 600, 0, -1, 1);
+    glOrtho(0, SCREEN_W, SCREEN_H, 0, -1, 1);
     glMatrixMode(GL_MODELVIEW);
 
     //SDL_Color c = { 255, 255, 255, 255 };
