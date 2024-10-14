@@ -116,6 +116,23 @@ bool GAME_WINDOW::load_gl_function(SDL_Window* window, SDL_GLContext gl_context)
     return 1;
 }
 
+const char* GAME_WINDOW::load_shader(const char* shaderPath) {
+    std::string shaderCode;
+    std::ifstream shaderFile;
+
+    shaderFile.open(shaderPath);
+
+    std::stringstream shaderStream;
+    shaderStream << shaderFile.rdbuf();
+
+    shaderFile.close();
+
+    shaderCode = shaderStream.str();
+
+    const char* shaderCodeCStr = shaderCode.c_str();
+    return shaderCode.c_str();
+}
+
 unsigned int GAME_WINDOW::compile_shader(unsigned int type, const char* source) {
     unsigned int shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
@@ -293,32 +310,8 @@ void GAME_WINDOW::config_image_shader(float vertices[], int num_vertices, unsign
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // Carregar os shaders
-    const char* vertexShaderSource = R"(
-    #version 330 core
-    layout (location = 0) in vec2 aPos;
-    layout (location = 1) in vec2 aTexCoord;
-    
-    out vec2 TexCoord;
-    
-    void main() {
-        gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
-        TexCoord = aTexCoord;
-    }
-    )";
-
-    const char* fragmentShaderSource = R"(
-    #version 330 core
-    out vec4 FragColor;
-    
-    in vec2 TexCoord;
-    
-    uniform sampler2D texture1;
-    
-    void main() {
-        FragColor = texture(texture1, TexCoord);
-    }
-    )";
+    const char* vertexShaderSource = load_shader("assets/shaders/image_vertex.glsl");
+    const char* fragmentShaderSource = load_shader("assets/shaders/image_fragment.glsl");
 
     shaderProgram = create_shader_program(vertexShaderSource, fragmentShaderSource);
 }
@@ -328,6 +321,7 @@ void GAME_WINDOW::draw_image(GLuint textureID, float x, float y, float w, float 
     VEC2 p2 = apply_rotation({x + w, y},     {x + w / 2, y + h / 2},  theta);
     VEC2 p3 = apply_rotation({x + w, y + h}, {x + w / 2, y + h / 2}, theta);
     VEC2 p4 = apply_rotation({x,     y + h}, {x + w / 2, y + h / 2},  theta);
+
 
     glBindTexture(GL_TEXTURE_2D, textureID);
 

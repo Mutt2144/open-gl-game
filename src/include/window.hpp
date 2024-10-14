@@ -2,6 +2,9 @@
 #define WINDOW_HPP
 
 #include <cmath>
+#include <string>
+#include <sstream>
+#include <fstream>
 
 #include <glad/glad.h>
 #include <SDL2/SDL.h>
@@ -31,6 +34,7 @@ namespace GAME_WINDOW {
     SDL_GLContext create_open_gl_renderer(SDL_Window* window);
     bool load_gl_function(SDL_Window* window, SDL_GLContext gl_context);
 
+    const char* load_shader(const char* shaderPath);
     unsigned int compile_shader(unsigned int type, const char* source);
     unsigned int create_shader_program(const char* vertex_shader_source, const char* fragment_shader_source);
 
